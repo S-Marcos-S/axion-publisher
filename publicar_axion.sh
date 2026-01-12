@@ -5,6 +5,16 @@ set -e
 REPO_URL="git@github.com:S-Marcos-S/Axion-GARNET.git"
 REPO_DIR="Axion-GARNET"
 
+echo "=== 0. Entrando na pasta axion ==="
+if [ -d "axion" ]; then
+    cd axion
+elif [ -d "../axion" ]; then
+    cd ../axion
+else
+    echo "ERRO: Pasta 'axion' não encontrada no mesmo nível ou acima do script."
+    exit 1
+fi
+
 echo "=== 1. Iniciando o Build ==="
 ax -br
 
