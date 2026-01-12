@@ -74,11 +74,20 @@ SERVER=$(echo "$SERVER_RESPONSE" | sed -n 's/.*"server":"\([^"]*\)".*/\1/p')
 if [ -n "$SERVER" ]; then
     echo "Servidor encontrado: $SERVER"
     echo "Enviando $ZIP_NAME para GoFile..."
-    # Realiza o upload
-    curl -F "file=@$ZIP_NAME" "https://$SERVER.gofile.io/uploadFile"
-    echo "" # Quebra de linha após o upload
+    # Realiza o upload e captura a saída
+    UPLOAD_RESPONSE=$(curl -s -F "file=@$ZIP_NAME" "https://$SERVER.gofile.io/uploadFile")
+    
+    # Extrai o link de download (downloadPage)
+    GOFILE_LINK=$(echo "$UPLOAD_RESPONSE" | sed -n 's/.*"downloadPage":"\([^"]*\)".*/\1/p')
+    
+    echo "" # Quebra de linha
+    if [ -n "$GOFILE_LINK" ]; then
+        echo "Upload GoFile concluído! Link: $GOFILE_LINK"
+    else
+        echo "Aviso: Não foi possível extrair o link do GoFile da resposta: $UPLOAD_RESPONSE"
+    fi
 else
-    echo "AVISO: Falha ao obter servidor GoFile. Pulusando upload."
+    echo "AVISO: Falha ao obter servidor GoFile. Pulando upload."
     echo "Resposta da API: $SERVER_RESPONSE"
 fi
 
@@ -91,14 +100,7 @@ fi
 
 git clone "$REPO_URL"
 
-echo "=== 5. Substituindo garnet.json ==="
-# Tenta encontrar o garnet.json na subpasta GMS ou diretamente no diretório de build
-JSON_SOURCE="$TARGET_DIR/GMS/garnet.json"
-
-if [ ! -f "$JSON_SOURCE" ]; then
-    echo "Aviso: $JSON_SOURCE não encontrado. Verificando na raiz de $TARGET_DIR..."
-    JSON_SOURCE="$TARGET_DIR/garnet.json"
-fi
+# ... (código existente de substituição do garnet.json) ...
 
 if [ -f "$JSON_SOURCE" ]; then
     cp "$JSON_SOURCE" "$REPO_DIR/garnet.json"
@@ -110,8 +112,17 @@ fi
 
 cd "$REPO_DIR"
 
-echo "=== 6. Commit Automático (garnet.json) ==="
+# Salva o link do GoFile no repositório
+if [ -n "$GOFILE_LINK" ]; then
+    echo "Salvando link do GoFile em links_gofile.txt..."
+    echo "$DATA_HOJE - $ZIP_NAME: $GOFILE_LINK" >> links_gofile.txt
+fi
+
+echo "=== 6. Commit Automático ==="
 git add garnet.json
+if [ -f "links_gofile.txt" ]; then
+    git add links_gofile.txt
+fi
 git commit -m "Nova versão da axion está sendo postada"
 
 echo "=== 7. Atualizando Changelog ==="
