@@ -64,7 +64,25 @@ echo "Arquivo encontrado: $ZIP_NAME"
 echo "=== 3. Upload para PixelDrain ==="
 curl -T "$ZIP_NAME" -u :bf84b3a4-910b-4661-86cb-75cd27947495 https://pixeldrain.com/api/file/
 
-echo "=== 4. Preparando Repositório Git ==="
+echo "=== 4. Upload para GoFile ==="
+# Obtém o melhor servidor para upload (resposta JSON: {"status":"ok","data":{"server":"store2"}})
+echo "Obtendo servidor GoFile..."
+SERVER_RESPONSE=$(curl -s https://api.gofile.io/getServer)
+# Extrai o nome do servidor usando sed para não depender de jq
+SERVER=$(echo "$SERVER_RESPONSE" | sed -n 's/.*"server":"\([^"]*\)".*/\1/p')
+
+if [ -n "$SERVER" ]; then
+    echo "Servidor encontrado: $SERVER"
+    echo "Enviando $ZIP_NAME para GoFile..."
+    # Realiza o upload
+    curl -F "file=@$ZIP_NAME" "https://$SERVER.gofile.io/uploadFile"
+    echo "" # Quebra de linha após o upload
+else
+    echo "AVISO: Falha ao obter servidor GoFile. Pulusando upload."
+    echo "Resposta da API: $SERVER_RESPONSE"
+fi
+
+echo "=== 5. Preparando Repositório Git ==="
 cd "$ROOT_DIR"
 # Remove o diretório se já existir para garantir um clone limpo
 if [ -d "$REPO_DIR" ]; then
