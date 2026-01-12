@@ -16,7 +16,28 @@ else
 fi
 
 echo "=== 1. Iniciando o Build ==="
-ax -br
+# Carrega o ambiente de build
+if [ -f "build/envsetup.sh" ]; then
+    . build/envsetup.sh
+else
+    echo "ERRO: build/envsetup.sh não encontrado na pasta atual."
+    exit 1
+fi
+
+echo "Configurando: axion garnet gms"
+# Verifica se a função axion está disponível
+if ! command -v axion &> /dev/null; then
+    echo "AVISO: Comando 'axion' não encontrado. Tentando 'lunch axion_garnet-ap2a-userdebug'..."
+    lunch axion_garnet-ap2a-userdebug || lunch axion_garnet-userdebug
+else
+    axion garnet gms
+fi
+
+echo "Executando: m installclean"
+m installclean
+
+echo "Executando: m bacon"
+m bacon
 
 echo "=== 2. Identificando o arquivo ROM ==="
 # Salva o diretório atual (raiz do projeto)
