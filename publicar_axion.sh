@@ -120,10 +120,12 @@ DATA_HOJE=$(date "+%d/%m/%Y")
 
 if [ -f "$CHANGELOG" ]; then
     # Adiciona as linhas novas após a linha 1 (preserve o título/cabeçalho)
-    sed -i "1a\
-
-$DATA_HOJE\
--------------\nI'M STILL TESTING, WAIT A BIT." "$CHANGELOG"
+    # Usa pipe | como delimitador do sed para não conflitar com as barras da data (dd/mm/aaaa)
+    sed -i "1a\\
+\\
+$DATA_HOJE\\
+-------------\\
+I'M STILL TESTING, WAIT A BIT." "$CHANGELOG"
 else
     echo "AVISO: $CHANGELOG não encontrado. Criando arquivo."
     echo -e "Changelog Axion\n\n$DATA_HOJE\n-------------\nI'M STILL TESTING, WAIT A BIT." > "$CHANGELOG"
